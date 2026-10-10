@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "version": "0.1",
+    "description": "Airlines used for Heathrow demo traffic. ICAO designators and radiotelephony callsigns per ICAO Doc 8585; terminal and fleet as typically seen at EGLL. Entered from knowledge, NOT yet verified against Doc 8585 or current airline/airport schedules."
+  },
+  "provenance": {
+    "status": "placeholder",
+    "tier": 6,
+    "note": "Designators, telephony callsigns, terminals and fleets entered from knowledge. Verify against ICAO Doc 8585 and current Heathrow terminal allocations before treating as real."
+  },
+  "operators": [
+    { "icao": "BAW", "name": "British Airways", "telephony": "SPEEDBIRD", "terminal": "T5", "weight": 40, "fleet": ["A319", "A320", "A20N", "A21N", "B772", "B77W", "B789", "A35K", "A388"] },
+    { "icao": "IBE", "name": "Iberia", "telephony": "IBERIA", "terminal": "T5", "weight": 3, "fleet": ["A320", "A20N", "A21N"] },
+    { "icao": "VIR", "name": "Virgin Atlantic", "telephony": "VIRGIN", "terminal": "T3", "weight": 6, "fleet": ["B789", "A35K"] },
+    { "icao": "AAL", "name": "American Airlines", "telephony": "AMERICAN", "terminal": "T3", "weight": 5, "fleet": ["B772", "B77W", "B789"] },
+    { "icao": "DAL", "name": "Delta Air Lines", "telephony": "DELTA", "terminal": "T3", "weight": 3, "fleet": ["A359"] },
+    { "icao": "UAE", "name": "Emirates", "telephony": "EMIRATES", "terminal": "T3", "weight": 4, "fleet": ["A388", "B77W"] },
+    { "icao": "CPA", "name": "Cathay Pacific", "telephony": "CATHAY", "terminal": "T3", "weight": 2, "fleet": ["A35K", "B77W"] },
+    { "icao": "QFA", "name": "Qantas", "telephony": "QANTAS", "terminal": "T3", "weight": 1, "fleet": ["B789"] },
+    { "icao": "DLH", "name": "Lufthansa", "telephony": "LUFTHANSA", "terminal": "T2", "weight": 4, "fleet": ["A320", "A20N", "A21N"] },
+    { "icao": "UAL", "name": "United Airlines", "telephony": "UNITED", "terminal": "T2", "weight": 4, "fleet": ["B772", "B77W", "B789"] },
+    { "icao": "ACA", "name": "Air Canada", "telephony": "AIR CANADA", "terminal": "T2", "weight": 2, "fleet": ["B77W", "B789"] },
+    { "icao": "SWR", "name": "Swiss", "telephony": "SWISS", "terminal": "T2", "weight": 2, "fleet": ["A320", "A20N"] },
+    { "icao": "SAS", "name": "Scandinavian Airlines", "telephony": "SCANDINAVIAN", "terminal": "T2", "weight": 2, "fleet": ["A20N"] },
+    { "icao": "EIN", "name": "Aer Lingus", "telephony": "SHAMROCK", "terminal": "T2", "weight": 3, "fleet": ["A320", "A20N", "A21N"] },
+    { "icao": "SIA", "name": "Singapore Airlines", "telephony": "SINGAPORE", "terminal": "T2", "weight": 2, "fleet": ["A388", "A359"] },
+    { "icao": "AIC", "name": "Air India", "telephony": "AIRINDIA", "terminal": "T2", "weight": 2, "fleet": ["B77W", "B789"] },
+    { "icao": "THY", "name": "Turkish Airlines", "telephony": "TURKISH", "terminal": "T2", "weight": 2, "fleet": ["A21N", "A359"] },
+    { "icao": "QTR", "name": "Qatar Airways", "telephony": "QATARI", "terminal": "T4", "weight": 4, "fleet": ["A388", "B77W", "A35K"] },
+    { "icao": "ETD", "name": "Etihad Airways", "telephony": "ETIHAD", "terminal": "T4", "weight": 2, "fleet": ["B789", "A388"] },
+    { "icao": "KLM", "name": "KLM", "telephony": "KLM", "terminal": "T4", "weight": 3, "fleet": ["E190", "B738"] },
+    { "icao": "AFR", "name": "Air France", "telephony": "AIRFRANS", "terminal": "T4", "weight": 3, "fleet": ["A319", "A320", "A20N"] }
+  ]
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Downloaded third-party operational data (AIP, charts, datasets) stays out of version control (spec §48).
+data/external/
+# Datasets generated from external data (rebuild with `npm run data:build`).
+data/generated/
+
+# Generated audio cache (spec §22).
+audio-cache/
+.env
+.env.*
+!.env.example

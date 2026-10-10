@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "airport": "EGLL",
+    "datasetVersion": "placeholder-positions-0.1",
+    "airac": null,
+    "isTestFixture": false,
+    "description": "PLACEHOLDER controller positions for EGLL until CAP 493 / EGLL sources are researched. Frequencies deliberately unknown; authority lists are placeholders."
+  },
+  "frequencies": [
+    {
+      "id": "F-GND",
+      "label": "Test Ground",
+      "mhz": null
+    },
+    {
+      "id": "F-TWR",
+      "label": "Test Tower",
+      "mhz": null
+    },
+    {
+      "id": "F-DEP",
+      "label": "Test Departure",
+      "mhz": null
+    },
+    {
+      "id": "F-APP",
+      "label": "Test Approach",
+      "mhz": null
+    },
+    {
+      "id": "F-CTR",
+      "label": "Test Center",
+      "mhz": null
+    }
+  ],
+  "positions": [
+    {
+      "id": "GND",
+      "name": "Ground",
+      "display": "surface",
+      "functions": [
+        "delivery",
+        "ground"
+      ],
+      "frequencyId": "F-GND",
+      "allowedCommands": {
+        "value": [
+          "departureClearance",
+          "pushback",
+          "taxi",
+          "holdPosition",
+          "continueTaxi",
+          "holdShort",
+          "squawk",
+          "frequencyChange"
+        ],
+        "provenance": {
+          "status": "placeholder",
+          "tier": 6,
+          "note": "Test authority list. Real lists come from CAP 493 / EGLL procedures."
+        }
+      }
+    },
+    {
+      "id": "TWR",
+      "name": "Tower",
+      "display": "surface",
+      "functions": [
+        "tower"
+      ],
+      "frequencyId": "F-TWR",
+      "allowedCommands": {
+        "value": [
+          "holdPosition",
+          "holdShort",
+          "crossRunway",
+          "lineUp",
+          "takeoff",
+          "landing",
+          "goAround",
+          "frequencyChange"
+        ],
+        "provenance": {
+          "status": "placeholder",
+          "tier": 6,
+          "note": "Test authority list."
+        }
+      }
+    },
+    {
+      "id": "DEP",
+      "name": "Departure",
+      "display": "surveillance",
+      "functions": [
+        "departure"
+      ],
+      "frequencyId": "F-DEP",
+      "allowedCommands": {
+        "value": [
+          "heading",
+          "altitude",
+          "speed",
+          "direct",
+          "squawk",
+          "frequencyChange"
+        ],
+        "provenance": {
+          "status": "placeholder",
+          "tier": 6,
+          "note": "Test authority list."
+        }
+      }
+    },
+    {
+      "id": "APP",
+      "name": "Arrival / Approach",
+      "display": "surveillance",
+      "functions": [
+        "approach"
+      ],
+      "frequencyId": "F-APP",
+      "allowedCommands": {
+        "value": [
+          "heading",
+          "altitude",
+          "speed",
+          "direct",
+          "squawk",
+          "frequencyChange"
+        ],
+        "provenance": {
+          "status": "placeholder",
+          "tier": 6,
+          "note": "Test authority list."
+        }
+      }
+    },
+    {
+      "id": "CTR",
+      "name": "Center",
+      "display": "surveillance",
+      "functions": [
+        "center"
+      ],
+      "frequencyId": "F-CTR",
+      "allowedCommands": {
+        "value": [
+          "heading",
+          "altitude",
+          "speed",
+          "direct",
+          "squawk",
+          "frequencyChange"
+        ],
+        "provenance": {
+          "status": "placeholder",
+          "tier": 6,
+          "note": "Test authority list."
+        }
+      }
+    }
+  ]
+}

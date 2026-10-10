@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heathrow Ground</title>
+    <style>
+      :root {
+        --bg: #000;
+        --chrome: #0a1322;
+        --chrome-2: #0e1a2d;
+        --line: #1d2d47;
+        --line-2: #2a4167;
+        --text: #c8d3e2;
+        --muted: #6c7d96;
+        --white: #f2f6fb;
+        --accent: #00e5ff;
+        --ok: #5ef08a;
+        --warn: #ffb020;
+        --alert: #ff4d4d;
+        --strip-dep: #ece2b8;
+        --strip-arr: #c4dcf2;
+        --ink: #1a1d22;
+        --ink-muted: #59606b;
+        --font: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace;
+        --strip-font: Bahnschrift, 'DIN Alternate', 'Arial Narrow', 'Segoe UI', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 12px/1.35 var(--font); overflow: hidden; }
+      button { font: inherit; cursor: pointer; }
+
+      #app {
+        display: grid; height: 100%;
+        grid-template-columns: var(--left, 330px) 1fr var(--right, 300px);
+        grid-template-rows: 34px 1fr auto;
+        grid-template-areas: 'top top top' 'strips map side' 'strips cmd side';
+      }
+      #app.left-closed { --left: 0px; }
+      #app.right-closed { --right: 0px; }
+
+      /* ---------------------------------------------------------------- top bar */
+      #top { grid-area: top; display: flex; align-items: center; gap: 18px; padding: 0 12px; background: var(--chrome); border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+      #top .brand { color: var(--white); font-weight: bold; letter-spacing: 0.12em; }
+      #top .pos { color: #000; background: var(--accent); padding: 1px 8px; font-weight: bold; letter-spacing: 0.08em; }
+      #top .spacer { flex: 1; }
+      #top .demo { color: var(--warn); font-size: 11px; }
+      #top .audio { color: var(--muted); font-size: 11px; letter-spacing: 0.06em; }
+      #top .audio.on { color: var(--ok); }
+      .tab input[type="range"] { width: 100%; accent-color: var(--accent); }
+      #clock { color: var(--white); font-size: 17px; font-weight: bold; letter-spacing: 0.04em; }
+
+      /* ---------------------------------------------------------------- strip bay */
+      #strips { grid-area: strips; background: #070d18; border-right: 1px solid var(--line-2); overflow-y: auto; overflow-x: hidden; padding: 6px 8px 12px; }
+      #app.left-closed #strips { display: none; }
+      .bay-title { display: flex; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 10px; letter-spacing: 0.14em; margin: 10px 2px 4px; }
+      .bay-title:first-child { margin-top: 2px; }
+      .bay-title b { color: var(--text); font-weight: normal; }
+      .bay-empty { color: #3c4a60; font-size: 11px; padding: 2px 4px 4px; }
+
+      .strip {
+        display: grid; grid-template-columns: 88px 1fr 58px; margin-bottom: 4px; cursor: pointer;
+        color: var(--ink); font-family: var(--strip-font); background: var(--strip-dep);
+        border-left: 5px solid #b9a660; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+      }
+      .strip.arr { background: var(--strip-arr); border-left-color: #6f98bf; }
+      .strip.req { border-left-color: var(--warn); animation: req 1.6s ease-in-out infinite; }
+      @keyframes req { 50% { border-left-color: #ffe08a; } }
+      .strip.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+      .strip > div { padding: 3px 6px; }
+      .s-id { border-right: 1px solid rgba(0, 0, 0, 0.25); }
+      .s-id b { display: block; font-size: 14px; letter-spacing: 0.01em; white-space: nowrap; }
+      .s-id span { font-size: 11px; color: var(--ink-muted); }
+      .s-main { min-width: 0; }
+      .s-instr { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .s-instr.req { color: #a35a00; }
+      .s-sub { font-size: 11px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .s-box { border-left: 1px solid rgba(0, 0, 0, 0.25); padding: 0 !important; display: grid; grid-template-rows: 1fr 1fr 1fr; font-size: 11px; text-align: center; }
+      .s-box div { border-bottom: 1px solid rgba(0, 0, 0, 0.15); padding: 1px 2px; white-space: nowrap; overflow: hidden; }
+      .s-box div:last-child { border-bottom: none; }
+      .s-actions { grid-column: 1 / -1; display: flex; gap: 4px; flex-wrap: wrap; padding: 3px 6px 5px !important; border-top: 1px dashed rgba(0, 0, 0, 0.25); }
+      .s-actions button {
+        font-family: var(--strip-font); font-size: 12px; font-weight: 600; color: var(--white); background: #24344d;
+        border: none; padding: 3px 9px; letter-spacing: 0.03em;
+      }
+      .s-actions button.go { background: #146c3a; }
+      .s-actions button:hover:not(:disabled) { filter: brightness(1.35); }
+      .s-actions button:disabled { opacity: 0.3; cursor: not-allowed; }
+      .s-detail { grid-column: 1 / -1; font-size: 11px; color: var(--ink-muted); padding: 2px 6px 4px !important; border-top: 1px dashed rgba(0, 0, 0, 0.25); }
+      .s-detail b { color: var(--ink); font-weight: 600; }
+      .s-why { grid-column: 1 / -1; font-size: 11px; color: #8a2a2a; padding: 0 6px 4px !important; }
+
+      /* ---------------------------------------------------------------- map and overlay */
+      #map { grid-area: map; position: relative; overflow: hidden; cursor: crosshair; }
+      #map canvas { display: block; }
+      #hud { position: absolute; left: 10px; top: 8px; padding: 6px 12px 8px 10px; pointer-events: none; text-shadow: 0 1px 2px #000; background: linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.45) 75%, rgba(0, 0, 0, 0)); max-width: 46%; }
+      #hud .title { color: var(--white); font-size: 20px; font-weight: bold; letter-spacing: 0.04em; font-family: var(--strip-font); }
+      #hud .title span { color: var(--accent); font-size: 15px; margin-left: 10px; letter-spacing: 0.1em; }
+      #hud .line { color: var(--text); font-size: 13px; }
+      #hud .stats { margin-top: 6px; display: grid; grid-template-columns: 86px auto; justify-content: start; gap: 0 10px; font-size: 13px; color: var(--white); }
+      #hud .stats span:nth-child(odd) { color: var(--muted); }
+      #hud .msgs { margin-top: 8px; color: var(--accent); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #hud .msgs div.bad { color: var(--alert); }
+      #scale { position: absolute; left: 14px; bottom: 10px; color: var(--text); pointer-events: none; }
+      #scale .bar { height: 6px; border: 1px solid var(--text); border-top: none; }
+      .edge-toggle { position: absolute; top: 50%; transform: translateY(-50%); width: 16px; height: 46px; border: 1px solid var(--line-2); background: var(--chrome); color: var(--text); padding: 0; z-index: 5; }
+      .edge-toggle:hover { color: var(--accent); border-color: var(--accent); }
+      #toggle-left { left: 0; border-left: none; }
+      #toggle-right { right: 0; border-right: none; }
+
+      /* ---------------------------------------------------------------- command bar */
+      #cmdbar { grid-area: cmd; background: var(--chrome); border-top: 1px solid var(--line-2); padding: 6px 10px 5px; }
+      #cmdbar .line { display: flex; gap: 8px; align-items: center; }
+      #cmd-target { color: var(--accent); white-space: nowrap; min-width: 70px; font-weight: bold; }
+      #cmd { flex: 1; min-width: 0; font: 15px var(--font); color: var(--white); background: #040910; border: 1px solid var(--line-2); padding: 5px 8px; outline: none; text-transform: uppercase; }
+      #cmd:focus { border-color: var(--accent); }
+      #send { color: #000; background: var(--accent); border: none; padding: 6px 18px; font-weight: bold; letter-spacing: 0.08em; }
+      .speed { display: flex; gap: 2px; margin-left: 6px; }
+      .speed button { color: var(--text); background: #0d1828; border: 1px solid var(--line-2); padding: 5px 9px; }
+      .speed button.on { color: #000; background: var(--accent); border-color: var(--accent); }
+      #cmd-status { margin-top: 3px; padding-left: 78px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
+      #cmd-status.hint { color: var(--muted); }
+      #cmd-status.ok { color: var(--ok); }
+      #cmd-status.caution { color: var(--warn); }
+      #cmd-status.error { color: var(--alert); }
+      #mic.recording { color: var(--alert); border-color: var(--alert); }
+
+      /* ---------------------------------------------------------------- right side panel */
+      #side { grid-area: side; display: flex; flex-direction: column; background: var(--chrome); border-left: 1px solid var(--line-2); min-width: 0; }
+      #app.right-closed #side { display: none; }
+      #tabs { display: flex; border-bottom: 1px solid var(--line-2); }
+      #tabs button { flex: 1; color: var(--muted); background: transparent; border: none; border-bottom: 2px solid transparent; padding: 8px 0 6px; font-size: 11px; letter-spacing: 0.1em; }
+      #tabs button.on { color: var(--white); border-bottom-color: var(--accent); }
+      #tabs button .dot { color: var(--warn); }
+      .tab { display: none; flex: 1; overflow-y: auto; padding: 10px 12px; }
+      .tab.on { display: block; }
+      .tab h3 { font-size: 10px; color: var(--muted); letter-spacing: 0.14em; margin: 14px 0 6px; font-weight: normal; }
+      .tab h3:first-child { margin-top: 0; }
+      .tab label { display: flex; gap: 8px; align-items: center; padding: 3px 0; cursor: pointer; }
+      .tab .value { color: var(--white); }
+      .tab .route { color: var(--accent); word-break: break-word; }
+      .tab .warn { color: var(--alert); }
+      .tab .hint { color: var(--muted); }
+      .tab button.plain { color: var(--text); background: #0d1828; border: 1px solid var(--line-2); padding: 4px 10px; }
+      .tab button.plain:hover { border-color: var(--accent); }
+      #radio div { padding: 4px 0; border-bottom: 1px solid #101a2a; }
+      #radio .t { color: var(--muted); margin-right: 6px; }
+      #radio .who { font-weight: bold; margin-right: 4px; }
+      #radio .controller .who { color: var(--accent); }
+      #radio .pilot { color: #a9cdf0; }
+      #radio .request { color: #ffcf70; }
+      .keys div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px solid #101a2a; }
+      kbd { border: 1px solid var(--line-2); padding: 0 5px; color: var(--white); background: #0d1828; }
+      .legend span { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+
+      /* ---------------------------------------------------------------- context menu */
+      .menu { position: absolute; z-index: 10; min-width: 200px; background: #0a111b; border: 1px solid var(--accent); padding: 6px 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7); }
+      .menu-header { color: var(--white); font-weight: bold; margin-bottom: 2px; }
+      .menu-title { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin: 6px 0 3px; }
+      .menu-row { display: flex; gap: 4px; flex-wrap: wrap; }
+      .menu-row button { color: var(--text); background: #111a26; border: 1px solid var(--line-2); padding: 3px 9px; }
+      .menu-row.compact button { min-width: 32px; }
+      .menu-row button:hover:not(:disabled) { border-color: var(--accent); color: var(--white); }
+      .menu-row button:disabled { opacity: 0.3; cursor: not-allowed; }
+      .menu-why { color: var(--muted); font-size: 11px; margin-top: 3px; max-width: 260px; }
+
+      @media (max-width: 900px) {
+        #app { --left: 0px; --right: 0px; }
+        #strips, #side { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="top">
+        <span class="brand">EGLL</span>
+        <span class="pos">GROUND</span>
+        <span id="clock">--:--:--Z</span>
+        <span class="spacer"></span>
+        <span id="audio-state" class="audio"></span>
+        <span class="demo">DEMO TRAFFIC · PLACEHOLDER POSITIONS</span>
+        <span id="cursor" class="hint"></span>
+      </div>
+
+      <aside id="strips" aria-label="Flight strips"></aside>
+
+      <div id="map">
+        <div id="hud">
+          <div class="title">LONDON HEATHROW<span>GROUND</span></div>
+          <div class="line" id="hud-data"></div>
+          <div class="line">Runways in use: not simulated · Wind: not simulated</div>
+          <div class="stats" id="hud-stats"></div>
+          <div class="msgs" id="hud-msgs"></div>
+        </div>
+        <div id="scale"><div class="bar"></div><div class="label"></div></div>
+        <button class="edge-toggle" id="toggle-left" title="Show / hide strips">‹</button>
+        <button class="edge-toggle" id="toggle-right" title="Show / hide panel">›</button>
+      </div>
+
+      <div id="cmdbar">
+        <div class="line">
+          <span id="cmd-target">›</span>
+          <input id="cmd" type="text" autocomplete="off" spellcheck="false" aria-label="Instruction" />
+          <button id="mic" title="Record a controller instruction, then review the transcript">MIC</button>
+          <button id="send">SEND</button>
+          <span class="speed">
+            <button data-speed="0" title="Pause (Space)">❚❚</button>
+            <button data-speed="1">1×</button>
+            <button data-speed="2">2×</button>
+            <button data-speed="4">4×</button>
+          </span>
+        </div>
+        <div id="cmd-status" class="hint"></div>
+      </div>
+
+      <aside id="side">
+        <div id="tabs">
+          <button data-tab="radio" class="on">RADIO</button>
+          <button data-tab="display">DISPLAY</button>
+          <button data-tab="tools">TOOLS</button>
+          <button data-tab="help">HELP</button>
+          <button data-tab="data">DATA</button>
+        </div>
+
+        <div class="tab on" id="tab-radio">
+          <div id="radio" class="hint">No transmissions yet.</div>
+        </div>
+
+        <div class="tab" id="tab-display">
+          <h3>RADIO AUDIO (LOCAL VOICES)</h3>
+          <label><input type="checkbox" id="voice-on" checked /> Pilot voices</label>
+          <label><input type="checkbox" id="voice-controller" checked /> Speak my instructions</label>
+          <label><input type="checkbox" id="voice-filter" checked /> Radio filter (light, no noise)</label>
+          <label>Volume <input type="range" id="voice-volume" min="0" max="100" value="80" /></label>
+          <button class="plain" id="voice-test">Test all voices</button>
+          <div id="voice-status" class="hint" style="margin-top: 6px">Checking voices…</div>
+          <h3>LABELS</h3>
+          <label><input type="checkbox" id="layer-taxiways" checked /> Taxiway names</label>
+          <label><input type="checkbox" id="layer-holds" checked /> Holding point names</label>
+          <label><input type="checkbox" id="layer-stands" checked /> Stand numbers</label>
+          <h3>VIEW</h3>
+          <button class="plain" id="fit">Fit airport</button>
+          <h3>STAND MARKERS (aircraft selected)</h3>
+          <div class="legend">
+            <div><span style="background: #3ddc5a"></span>Fits and free</div>
+            <div><span style="background: #ffa000"></span>In use or blocked</div>
+            <div><span style="background: #ff3b3b"></span>Too small</div>
+            <div><span style="background: #7a828c"></span>Occupied (nothing selected)</div>
+          </div>
+          <h3>UNDER CURSOR</h3>
+          <div id="info" class="hint">Hover a stand or holding point.</div>
+        </div>
+
+        <div class="tab" id="tab-tools">
+          <h3>ROUTE TOOL</h3>
+          <div id="route" class="hint">With no aircraft selected: click a stand, then a holding point.</div>
+          <label><input type="checkbox" id="allow-runways" /> Allow runway crossings</label>
+          <button class="plain" id="clear">Clear route</button>
+        </div>
+
+        <div class="tab keys" id="tab-help">
+          <h3>MOUSE</h3>
+          <div><span>Select aircraft</span><span><kbd>click</kbd> aircraft or strip</span></div>
+          <div><span>Command menu</span><span><kbd>right-click</kbd> aircraft</span></div>
+          <div><span>Taxi limit</span><span><kbd>click</kbd> holding point / stand</span></div>
+          <div><span>Pan / zoom</span><span><kbd>drag</kbd> <kbd>wheel</kbd></span></div>
+          <h3>KEYBOARD</h3>
+          <div><span>Type instruction</span><span><kbd>Enter</kbd> <kbd>/</kbd></span></div>
+          <div><span>Previous instructions</span><span><kbd>↑</kbd> <kbd>↓</kbd></span></div>
+          <div><span>Pause</span><span><kbd>Space</kbd></span></div>
+          <div><span>Fit airport</span><span><kbd>F</kbd></span></div>
+          <div><span>Deselect</span><span><kbd>Esc</kbd></span></div>
+          <h3>EXAMPLES</h3>
+          <div class="hint" style="display: block">
+            SPEEDBIRD 23K PUSH BACK APPROVED FACE EAST<br />
+            BAW23K TAXI HOLDING POINT A10E VIA A<br />
+            SHAMROCK 271 TAXI STAND 239<br />
+            (callsign optional when selected) HOLD POSITION · CONTINUE TAXI
+          </div>
+        </div>
+
+        <div class="tab" id="tab-data">
+          <div id="dataset" class="hint"></div>
+          <h3>SOURCES</h3>
+          <div id="sources" class="hint"></div>
+        </div>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "version": "0.1",
+    "description": "Aircraft types used by the simulation. ICAO type designators and wake turbulence categories follow ICAO Doc 8643. Dimensions are manufacturer figures (Aircraft Characteristics for Airport Planning documents) entered from memory and NOT yet checked against the documents."
+  },
+  "dimensionsProvenance": {
+    "status": "placeholder",
+    "tier": 6,
+    "note": "Wingspan and length from manufacturer airport-planning figures, entered from memory. Verify each against the Airbus / Boeing / Embraer Aircraft Characteristics for Airport Planning documents."
+  },
+  "categoryProvenance": {
+    "status": "placeholder",
+    "tier": 6,
+    "note": "ICAO wake turbulence category (L/M/H/J) per ICAO Doc 8643, entered from memory. EGLL may apply a different scheme (e.g. RECAT-EU) — see spec §30."
+  },
+  "types": [
+    { "icao": "E190", "name": "Embraer E190", "wakeCategory": "M", "wingspanM": 28.72, "lengthM": 36.24 },
+    { "icao": "A319", "name": "Airbus A319", "wakeCategory": "M", "wingspanM": 35.8, "lengthM": 33.84 },
+    { "icao": "A320", "name": "Airbus A320", "wakeCategory": "M", "wingspanM": 35.8, "lengthM": 37.57 },
+    { "icao": "A20N", "name": "Airbus A320neo", "wakeCategory": "M", "wingspanM": 35.8, "lengthM": 37.57 },
+    { "icao": "A21N", "name": "Airbus A321neo", "wakeCategory": "M", "wingspanM": 35.8, "lengthM": 44.51 },
+    { "icao": "B738", "name": "Boeing 737-800", "wakeCategory": "M", "wingspanM": 35.79, "lengthM": 39.47 },
+    { "icao": "B38M", "name": "Boeing 737 MAX 8", "wakeCategory": "M", "wingspanM": 35.92, "lengthM": 39.52 },
+    { "icao": "B788", "name": "Boeing 787-8", "wakeCategory": "H", "wingspanM": 60.12, "lengthM": 56.72 },
+    { "icao": "B789", "name": "Boeing 787-9", "wakeCategory": "H", "wingspanM": 60.12, "lengthM": 62.81 },
+    { "icao": "B772", "name": "Boeing 777-200", "wakeCategory": "H", "wingspanM": 60.93, "lengthM": 63.73 },
+    { "icao": "B77W", "name": "Boeing 777-300ER", "wakeCategory": "H", "wingspanM": 64.8, "lengthM": 73.86 },
+    { "icao": "A359", "name": "Airbus A350-900", "wakeCategory": "H", "wingspanM": 64.75, "lengthM": 66.8 },
+    { "icao": "A35K", "name": "Airbus A350-1000", "wakeCategory": "H", "wingspanM": 64.75, "lengthM": 73.79 },
+    { "icao": "B744", "name": "Boeing 747-400", "wakeCategory": "H", "wingspanM": 64.44, "lengthM": 70.66 },
+    { "icao": "A388", "name": "Airbus A380-800", "wakeCategory": "J", "wingspanM": 79.75, "lengthM": 72.72 }
+  ]
+}
