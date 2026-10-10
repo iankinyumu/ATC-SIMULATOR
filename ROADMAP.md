@@ -29,6 +29,8 @@ The target service roles are OpenAI speech transcription, GPT-4o mini for ground
 
 ## Later simulation milestones
 
+* Keep the simulation engine airport-agnostic and define a documented airport-pack format.
+* Invite community contributions for additional airports after the EGLL foundation and data workflow are stable; each pack needs verified provenance and redistribution terms.
 * Surface conflict/give-way behaviour and runway operations.
 * Tower, airborne movement, and radar display built on validated scenario data and rules.
 * Handoffs and bot controller behaviour across a shared world.

@@ -66,11 +66,11 @@ The game should therefore feel like a controller operating a working ATC environ
 
 # 2. V1 SCOPE
 
-## V1 airport: EGLL — London Heathrow
+## First airport pack: EGLL — London Heathrow
 
-The first version contains ONLY EGLL.
+The first release focuses on EGLL. Keep the simulation engine and airport-data interfaces reusable so the community can add other airports as independently validated airport packs. Do not split early development across several incomplete airport packs; establish a coherent EGLL foundation and reusable data workflow first.
 
-Do not attempt to build a multi-airport product before the EGLL simulation is operationally coherent.
+Do not hard-code EGLL assumptions into shared simulation rules when those rules can be expressed as airport data or configuration.
 
 EGLL is intentionally being used as the first and primary simulation environment because Heathrow provides:
 
@@ -88,7 +88,7 @@ EGLL is intentionally being used as the first and primary simulation environment
 * airborne surveillance
 * realistic radio workload
 
-The purpose of V1 is to make the simulation engine deep enough that adding another airport later becomes primarily a matter of adding another validated operational dataset rather than rewriting the entire ATC engine.
+The purpose of the first release is to make the simulation engine deep enough that adding another airport later becomes primarily a matter of contributing a validated operational dataset rather than rewriting the ATC engine. Community airport packs must document their sources and redistribution rights.
 
 ---
 

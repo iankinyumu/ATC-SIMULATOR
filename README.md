@@ -1,6 +1,6 @@
-# EGLL ATC Simulation
+# Airport ATC Simulation
 
-An open-source air traffic control simulation project focused on London Heathrow (EGLL). The goal is to grow a detailed, replayable airport operations sim with realistic ground movement, controller workload, pilot radio calls, and eventually connected tower and radar positions.
+An open-source air traffic control simulation built to support multiple airports through community-contributed airport data and scenarios. London Heathrow (EGLL) is the first airport and current development focus. The goal is a detailed, replayable operations sim with realistic ground movement, controller workload, pilot radio calls, and eventually connected tower and radar positions.
 
 **Early-stage project:** the playable prototype currently focuses on ground operations. Many procedures, aircraft behaviours, data sources, and voice features are incomplete or marked as placeholders. This is a community-built simulation project, not an operational ATC tool or certified training product.
 
@@ -14,7 +14,7 @@ An open-source air traffic control simulation project focused on London Heathrow
 * Push-to-talk speech transcription through OpenAI Whisper (`whisper-1`); the transcript is reviewed in the command line before it is sent.
 * Typed instructions as an accessible and development fallback.
 
-See [the master specification](EGLL_ATC_Simulation_V1_Master_Spec.md) for the broader simulation goals and known gaps. The [radio and pilot communication plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md) describes the planned Whisper, GPT-4o mini, and ElevenLabs conversation stack; GPT-4o mini dialogue and ElevenLabs voice output are not integrated yet.
+See [the master specification](EGLL_ATC_Simulation_V1_Master_Spec.md) for the first airport's goals and known gaps. The [roadmap](ROADMAP.md) tracks the shared airport architecture and future airport contributions. The [radio and pilot communication plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md) describes the planned Whisper, GPT-4o mini, and ElevenLabs conversation stack; GPT-4o mini dialogue and ElevenLabs voice output are not integrated yet.
 
 ## Run it locally
 
@@ -50,7 +50,7 @@ There are useful ways to contribute before the project is feature-complete:
 * improve simulation rules and deterministic scenario coverage;
 * review ground movement, clearances, phraseology, and pilot communications against appropriate sources;
 * improve the map, strips, accessibility, onboarding, and visual/audio controls;
-* check data provenance and help document what may be redistributed;
+* check airport data provenance and help build additional airport packs where redistribution rights allow;
 * develop the planned conversational pilot and voice architecture;
 * improve setup documentation and help test the project on different systems.
 
