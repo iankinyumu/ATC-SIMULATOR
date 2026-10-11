@@ -1,26 +1,5 @@
 {
-  "description": "Local text-to-speech voices. Everything runs offline once downloaded with `npm run voices:fetch`; no online API is used. `active` picks the engine: kokoro (natural, slower) or piper (faster, more synthetic).",
-  "active": "piper",
-  "kokoro": {
-    "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
-    "dtype": "fp32",
-    "speed": 1.08,
-    "licence": "Apache-2.0",
-    "attribution": "Kokoro-82M by hexgrad (Apache 2.0), ONNX export by onnx-community.",
-    "pilots": [
-      { "id": "pilot-1", "label": "Pilot voice 1 (British male)", "voice": "bm_george" },
-      { "id": "pilot-2", "label": "Pilot voice 2 (British male)", "voice": "bm_fable" },
-      { "id": "pilot-3", "label": "Pilot voice 3 (British male)", "voice": "bm_lewis" },
-      { "id": "pilot-4", "label": "Pilot voice 4 (American male)", "voice": "am_michael" },
-      { "id": "pilot-5", "label": "Pilot voice 5 (American male)", "voice": "am_puck" },
-      { "id": "pilot-6", "label": "Pilot voice 6 (American male)", "voice": "am_fenrir" },
-      { "id": "pilot-7", "label": "Pilot voice 7 (British female)", "voice": "bf_emma" },
-      { "id": "pilot-8", "label": "Pilot voice 8 (British female)", "voice": "bf_isabella" },
-      { "id": "pilot-9", "label": "Pilot voice 9 (American female)", "voice": "af_heart" },
-      { "id": "pilot-10", "label": "Pilot voice 10 (American female)", "voice": "af_nicole" }
-    ],
-    "controller": { "id": "controller", "label": "Controller (your typed instructions)", "voice": "bm_daniel" }
-  },
+  "description": "Piper voices used only as an optional offline fallback. ElevenLabs is the primary radio speech provider.",
   "piper": {
     "windowsBuildUrl": "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_windows_amd64.zip",
     "model": "en_GB-vctk-medium.onnx",

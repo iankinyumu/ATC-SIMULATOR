@@ -10,7 +10,7 @@ An open-source air traffic control simulation built to support multiple airports
 * EGLL ground map and taxi route finding from generated local airport data.
 * Ground aircraft movement, stand occupancy/fit checks, clearances, pilot requests, and controller command checks.
 * A PixiJS display with flight strips, radio log, map inspection, route preview, and command line.
-* Server-side radio speech using ElevenLabs with distinct pilot/controller voices when configured; Piper or Kokoro remain available as local providers.
+* Server-side radio speech using ElevenLabs with distinct pilot/controller voices; Piper is the only optional offline speech fallback.
 * Push-to-talk transcription through OpenAI Whisper (`whisper-1`), followed by a GPT-6 Luna command suggestion. The suggestion is parsed, shown for review, and never sent automatically.
 * Typed instructions as an accessible and development fallback.
 
@@ -27,11 +27,11 @@ npm run data:build
 npm run display
 ```
 
-Open `http://localhost:5173`. Data fetching needs an internet connection. It downloads source material into ignored folders and builds the local EGLL dataset.
+Open `http://localhost:5173`. Data fetching needs an internet connection. It downloads source material into ignored folders and builds the EGLL dataset used by the simulator.
 
-Copy `.env.example` to `.env`, add your OpenAI and ElevenLabs keys, and restart the display server. OpenAI receives recorded microphone audio for Whisper transcription and the transcript plus airport command context for GPT-6 Luna interpretation. The result stays in the command line for review and deterministic validation. ElevenLabs receives radio text for synthesis; the server loads up to ten English premade voices from your account and assigns stable voices to pilots and the controller. No keys are sent to the browser.
+Copy `.env.example` to `.env`, add your OpenAI and ElevenLabs keys, and restart the display server. Whisper is OpenAI's cloud transcription service; no local speech recognition model is installed. OpenAI receives recorded microphone audio for transcription and the transcript plus airport command context for GPT-6 Luna interpretation. The result stays in the command line for review and deterministic validation. ElevenLabs receives radio text for synthesis; the server loads up to ten English premade voices from your account and assigns stable voices to pilots and the controller. No keys are sent to the browser, and generated ElevenLabs audio is cached in memory only.
 
-The current `whisper-1` model is scheduled for removal by OpenAI on February 26, 2027; see the communication plan for the migration requirement. If you prefer local speech output, set `VOICE_PROVIDER=local` and run `npm run voices:fetch` to download Piper/Kokoro assets. The app uses local voices when no ElevenLabs key is configured. API usage can incur provider charges; check your account limits.
+The current `whisper-1` model is scheduled for removal by OpenAI on February 26, 2027; see the communication plan for the migration requirement. ElevenLabs is the default output provider. If its service is unavailable, the app falls back to Piper when its assets are installed. To always use Piper, set `VOICE_PROVIDER=piper` and run `npm run piper:fetch`. API usage can incur provider charges; check your account limits. Airport data remains local because the deterministic simulator needs it to build the map and validate movement.
 
 Useful commands:
 
@@ -41,7 +41,7 @@ npm run demo          # print a scripted simulation session
 npm test              # run the test suite
 npm run typecheck     # check TypeScript packages
 npm run data:fetch    # download source airport data
-npm run data:build    # build the local EGLL dataset
+npm run data:build    # build the EGLL simulator dataset
 ```
 
 ## Help build it

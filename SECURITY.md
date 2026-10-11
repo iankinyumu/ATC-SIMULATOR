@@ -12,4 +12,4 @@ Include the affected component, impact, and reproduction steps. The maintainer w
 
 ## Secrets and audio
 
-Keep `OPENAI_API_KEY` and any future `ELEVENLABS_API_KEY` in local environment variables or an ignored `.env` file. Do not commit keys, raw microphone recordings, generated audio caches, or downloaded voice/data files.
+Keep `OPENAI_API_KEY` and `ELEVENLABS_API_KEY` in local environment variables or an ignored `.env` file. Do not commit keys, raw microphone recordings, Piper fallback assets, generated fallback audio caches, or downloaded airport data. Whisper and ElevenLabs are cloud services; the API keys remain on the server, and ElevenLabs-generated audio is held in memory only.

@@ -1,6 +1,5 @@
 /**
- * Server-side radio speech providers. ElevenLabs is selected when its API key is configured;
- * otherwise the local Kokoro/Piper provider is used. Audio is served through Vite and cached locally.
+ * Server-side radio speech providers. ElevenLabs is primary; Piper is the only local/offline fallback.
  */
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -22,25 +21,18 @@ interface EngineConfig {
   pilots: VoiceEntry[];
   controller: VoiceEntry;
 }
-interface KokoroConfig extends EngineConfig {
-  model: string;
-  dtype: 'fp32' | 'fp16' | 'q8' | 'q4';
-  speed: number;
-}
 interface PiperConfig extends EngineConfig {
   model: string;
   lengthScale: number;
 }
 interface VoicesFile {
-  active: 'kokoro' | 'piper';
-  kokoro: KokoroConfig;
   piper: PiperConfig;
 }
 
 export interface VoicePaths {
   /** data/voices/voices.json */
   config: string;
-  /** data/external/voices (kokoro/, piper/, models/ inside) */
+  /** data/external/voices (Piper executable and model) */
   installDir: string;
   /** Where generated .wav files are cached. */
   cacheDir: string;
@@ -123,51 +115,6 @@ interface Engine {
   synth(text: string, voice: VoiceEntry, file: string): Promise<void>;
   warmUp(): void;
   stop(): void;
-}
-
-// -------------------------------------------------------------------------------------------------
-// Kokoro (via kokoro-js / transformers.js, CPU)
-// -------------------------------------------------------------------------------------------------
-
-class KokoroEngine implements Engine {
-  readonly name = 'Kokoro';
-  readonly concurrency = 1;
-  get settingsKey(): string {
-    return `${this.config.model}|${this.config.dtype}|${this.config.speed}`;
-  }
-  private tts: Promise<{ generate(text: string, o: { voice: string; speed: number }): Promise<{ save(path: string): Promise<void> }> }> | null = null;
-
-  constructor(
-    readonly config: KokoroConfig,
-    private readonly cacheDir: string,
-  ) {}
-
-  problem(): string | null {
-    return existsSync(join(this.cacheDir, ...this.config.model.split('/'))) ? null : 'Kokoro voices are not downloaded. Run: npm run voices:fetch';
-  }
-
-  private load() {
-    this.tts ??= (async () => {
-      const { env } = await import('@huggingface/transformers');
-      env.cacheDir = this.cacheDir;
-      env.allowRemoteModels = false; // offline: only the downloaded files are used
-      const { KokoroTTS } = await import('kokoro-js');
-      return KokoroTTS.from_pretrained(this.config.model, { dtype: this.config.dtype, device: 'cpu' });
-    })();
-    return this.tts;
-  }
-
-  async synth(text: string, voice: VoiceEntry, file: string): Promise<void> {
-    const tts = await this.load();
-    const audio = await tts.generate(text, { voice: voice.voice, speed: this.config.speed });
-    await audio.save(file);
-  }
-
-  warmUp(): void {
-    void this.load().then((tts) => tts.generate('Ready.', { voice: this.config.controller.voice, speed: 1 }));
-  }
-
-  stop(): void {}
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -267,7 +214,7 @@ interface Job {
   reject(e: Error): void;
 }
 
-export class LocalVoices {
+export class PiperVoices {
   private readonly engine: Engine;
   private readonly jobs = new Map<string, Job>();
   private readonly queue: Job[] = [];
@@ -275,7 +222,7 @@ export class LocalVoices {
 
   constructor(private readonly paths: VoicePaths) {
     const file = JSON.parse(readFileSync(paths.config, 'utf8')) as VoicesFile;
-    this.engine = file.active === 'piper' ? new PiperEngine(file.piper, paths.installDir) : new KokoroEngine(file.kokoro, join(paths.installDir, 'kokoro'));
+    this.engine = new PiperEngine(file.piper, paths.installDir);
     if (this.engine.problem() === null) this.engine.warmUp();
   }
 
@@ -366,10 +313,10 @@ export interface VoiceProviderOptions {
   controllerVoiceId?: string;
 }
 
-export function localVoicePlugin(paths: VoicePaths, options: VoiceProviderOptions = {}): Plugin {
-  let voices: LocalVoices | null = null;
+export function radioVoicePlugin(paths: VoicePaths, options: VoiceProviderOptions = {}): Plugin {
+  const piper = new PiperVoices(paths);
   let elevenLabs: ElevenLabsVoiceProvider | null = null;
-  const useElevenLabs = options.provider !== 'local' && Boolean(options.apiKey);
+  const useElevenLabs = options.provider !== 'piper' && Boolean(options.apiKey);
   const send = (res: ServerResponse, status: number, body: unknown) => {
     res.statusCode = status;
     res.setHeader('Content-Type', 'application/json');
@@ -384,20 +331,28 @@ export function localVoicePlugin(paths: VoicePaths, options: VoiceProviderOption
           modelId: options.modelId || 'eleven_multilingual_v2',
           pilotVoiceIds: options.pilotVoiceIds,
           controllerVoiceId: options.controllerVoiceId,
-          cacheDir: paths.cacheDir,
         });
-      } else {
-        voices = new LocalVoices(paths);
       }
-      server.httpServer?.on('close', () => voices?.stop());
+      server.httpServer?.on('close', () => piper.stop());
       server.middlewares.use('/api/voice', (req: IncomingMessage, res: ServerResponse) => {
         const url = new URL(req.url ?? '/', 'http://localhost');
         if (url.pathname === '/status') {
           if (elevenLabs !== null) {
-            void elevenLabs.status().then((status) => send(res, status.available ? 200 : 503, status));
+            void elevenLabs.status().then((status) => {
+              if (status.available) return send(res, 200, status);
+              const fallback = piper.status();
+              if (fallback.available) {
+                return send(res, 200, {
+                  ...fallback,
+                  attribution: `${fallback.attribution} ElevenLabs unavailable: ${status.problem}`,
+                });
+              }
+              return send(res, 503, { ...fallback, problem: `${status.problem} Piper fallback unavailable: ${fallback.problem}` });
+            });
             return;
           }
-          return send(res, 200, voices!.status());
+          const status = piper.status();
+          return send(res, status.available ? 200 : 503, status);
         }
         if (url.pathname !== '/tts') return send(res, 404, { error: 'Not found' });
         if (req.method !== 'GET') return send(res, 405, { error: 'Use GET to synthesize speech.' });
@@ -408,13 +363,25 @@ export function localVoicePlugin(paths: VoicePaths, options: VoiceProviderOption
             .then((audio) => {
               res.statusCode = 200;
               res.setHeader('Content-Type', 'audio/mpeg');
-              res.setHeader('Cache-Control', 'max-age=31536000, immutable');
+              res.setHeader('Cache-Control', 'no-store');
               res.end(audio);
             })
-            .catch((err: Error) => send(res, 503, { error: err.message }));
+            .catch(async (err: Error) => {
+              try {
+                const file = await piper.speak(url.searchParams.get('voice') ?? '', url.searchParams.get('text') ?? '', priority);
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'audio/wav');
+                res.setHeader('Cache-Control', 'max-age=86400');
+                res.setHeader('X-Voice-Fallback', 'piper');
+                res.end(readFileSync(file));
+              } catch (fallbackError) {
+                const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : 'Piper fallback failed.';
+                send(res, 503, { error: `ElevenLabs failed: ${err.message} Piper fallback failed: ${fallbackMessage}` });
+              }
+            });
           return;
         }
-        voices!
+        piper
           .speak(url.searchParams.get('voice') ?? '', url.searchParams.get('text') ?? '', priority)
           .then((file) => {
             res.statusCode = 200;

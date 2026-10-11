@@ -6,9 +6,9 @@ This is a community roadmap, not a promise that each item is scheduled. We welco
 
 * Deterministic ground simulation core, seeded traffic, event log, and replay foundations.
 * EGLL surface-data import/build workflow and route finding.
-* PixiJS surface display, command entry, strips, and configurable local/cloud radio TTS.
+* PixiJS surface display, command entry, strips, and cloud radio TTS with an optional Piper offline fallback.
 * OpenAI Whisper transcription with GPT-6 Luna command suggestions that remain subject to parser validation and controller review.
-* ElevenLabs multi-voice synthesis through server-side credentials, with Piper/Kokoro local fallback.
+* ElevenLabs multi-voice synthesis through server-side credentials, with Piper as the only local speech fallback.
 
 ## Near term: make the ground game dependable
 

@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@atc/sim-core": "*",
-    "kokoro-js": "^1.2.1",
     "pixi.js": "^8.22.0"
   },
   "devDependencies": {

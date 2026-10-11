@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
 import { conversationInterpretationPlugin } from './server/conversationPlugin';
-import { localVoicePlugin, whisperTranscriptionPlugin } from './server/voiceServer';
+import { radioVoicePlugin, whisperTranscriptionPlugin } from './server/voiceServer';
 
 const root = (p: string) => fileURLToPath(new URL(`../../${p}`, import.meta.url));
 const env = loadEnv(process.env.NODE_ENV ?? 'development', root('.'), '');
@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [
     whisperTranscriptionPlugin(env.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY),
     conversationInterpretationPlugin(env.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY, env.OPENAI_CHAT_MODEL?.trim() || 'gpt-6-luna'),
-    localVoicePlugin({
+    radioVoicePlugin({
       config: root('data/voices/voices.json'),
       installDir: root('data/external/voices'),
       cacheDir: root('data/generated/audio-cache'),

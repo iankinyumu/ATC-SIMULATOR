@@ -357,7 +357,7 @@ Every position the player is not working is run by a **bot controller**.
 
 The bot controller is:
 
-* local and offline
+* simulation decisions are local and deterministic; optional cloud dialogue is a presentation layer whose outputs pass the same simulation validators
 * rule-based and deterministic (given the same seed and inputs, it makes the same decisions)
 * preloaded with procedures from the operational dataset
 * deterministic simulation rules; GPT-6 Luna may select/realize bounded dialogue but does not apply world-state changes
@@ -857,7 +857,7 @@ Do not bury API calls throughout gameplay code.
 Practical notes:
 
 * Callsign + number + instruction combinations are almost always unique, so caching whole phrases will rarely hit. Consider caching reusable **segments** (callsigns, fixed phrases, numbers) as well as whole phrases.
-* Provide a **local TTS fallback** so the simulation still works offline, when the API is slow, or when usage limits are reached.
+* Use ElevenLabs as the cloud TTS provider. Piper is the only optional local/offline TTS fallback; do not bundle or fetch other local speech models. The deterministic simulation still runs if cloud speech is unavailable.
 * Give each aircraft a **consistent voice** for the whole session, and give each bot controller position its own voice.
 * Apply a **radio effect** (band-pass filter, light noise, squelch) in playback, not in the stored audio.
 * The duration of a transmission must be known by the simulation (§23A). If generated audio is not ready in time, the simulation uses an estimated duration and must not stall.
@@ -2112,7 +2112,7 @@ New open items found during Stage 1 planning should be added here.
 | A11 | Pilot timings (engine start 30–90 s, call after vacating 3–10 s, repeat after 90 s, at most 3 calls) and request wording are placeholders. In the demo, arrivals appear at holding points north of 09R/27L as if just vacated; landing is not modelled. | `src/pilots/pilotAgent.ts`, display demo | CAP 413, EGLL procedures |
 | A12 | Pilot and controller wording (readbacks, requests, reports) and the spoken form (spelling alphabet; digits 3/5/9 as "tree", "fife", "niner") follow ICAO/UK usage from knowledge; not yet checked against CAP 413. | `src/phraseology/phraseology.ts` | CAP 413 |
 | A13 | Airline designators, radio callsigns, terminals and fleets for demo traffic are entered from knowledge; flight numbers are generated. | `data/aircraft/operators.json` | ICAO Doc 8585, Heathrow terminal allocations |
-| A14 | Current implementation uses local Piper/Kokoro text-to-speech; the target voice output is ElevenLabs with a larger stable roster, per the communication improvement plan. | `packages/display/server/voiceServer.ts`, `data/voices/voices.json` | Implementation status / product plan |
+| A14 | ElevenLabs is the primary cloud text-to-speech provider; Piper is the only optional local/offline speech fallback. OpenAI Whisper is cloud transcription; no local Whisper model is included. | `packages/display/server/voiceServer.ts`, `data/voices/voices.json` | Implementation status / product plan |
 | A3 | Stands with several lead-in lines (e.g. 423, 440, 441, MARS/MCA stands) currently keep only the first line. | `packages/egll-data/src/osm.ts` | AD 2.24 Aircraft Parking/Docking charts |
 
 ## Known data gaps

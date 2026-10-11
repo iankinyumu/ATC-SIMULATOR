@@ -13,7 +13,7 @@
     "data:fetch": "tsx packages/egll-data/scripts/fetch-egll.ts",
     "data:build": "tsx packages/egll-data/scripts/build-egll.ts",
     "display": "npm run dev -w @atc/display",
-    "voices:fetch": "tsx packages/display/server/fetchVoices.ts"
+    "piper:fetch": "tsx packages/display/server/fetchVoices.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

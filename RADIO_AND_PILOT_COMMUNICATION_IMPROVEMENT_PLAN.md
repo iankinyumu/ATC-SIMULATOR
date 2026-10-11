@@ -2,7 +2,7 @@
 
 **Status:** Design plan with initial API integrations
 **Scope:** Speech, radio dialogue, pilot behaviour, and generated voices  
-**Implementation:** Whisper transcription, GPT-6 Luna transcript-to-command suggestions, and ElevenLabs TTS are integrated in the display server. Model-generated pilot dialogue is still a future milestone; current pilot wording remains deterministic.
+**Implementation:** OpenAI Whisper cloud transcription, GPT-6 Luna transcript-to-command suggestions, and ElevenLabs cloud TTS are integrated in the display server. Piper is the only local speech asset and is an optional offline fallback. Model-generated pilot dialogue is still a future milestone; current pilot wording remains deterministic.
 
 **Chosen speech stack:** OpenAI Whisper (`whisper-1`, with a required migration before its announced retirement) for player speech input/transcription; GPT-6 Luna (`gpt-6-luna`) for interpreting player intent and generating context-aware conversation; ElevenLabs for spoken audio output. These services have separate roles: Whisper recognizes speech, GPT-6 Luna handles the conversation, and ElevenLabs voices the resulting text. GPT-6 Luna is available in the project owner's API account; API access and billing still depend on the account's limits and credits.
 
@@ -23,7 +23,7 @@ The current implementation and master spec establish useful foundations, but the
 * The pilot agent mainly raises pushback, ready-for-taxi, taxi-to-stand, and holding reports on fixed state/timing rules.
 * Readbacks are assembled from structured commands using a small number of fixed strings.
 * Requests and pilot calls use fixed templates in `phraseology.ts`.
-* ElevenLabs can supply up to ten English premade pilot voices and a separate controller voice; Piper/Kokoro remain local alternatives. Voice choice and delivery still need review for believable ATC radio quality.
+* ElevenLabs can supply up to ten English premade pilot voices and a separate controller voice. Piper is the only local speech engine, used as an optional offline fallback. ElevenLabs audio is cached in memory only; local Piper assets and fallback audio cache are used only when Piper is selected or cloud synthesis fails.
 * Speech input sends push-to-talk audio to Whisper, then GPT-6 Luna maps the transcript to a candidate command. The command is placed in the line for controller review and passes the existing deterministic parser before it can be sent.
 * GPT-6 Luna does not yet generate pilot dialogue. Requests, readbacks, and reports remain deterministic templates, and natural-language conversation is bounded by the current command grammar.
 * The master spec reflects the selected cloud speech stack and grounded, open-ended dialogue direction. This plan contains the remaining requirements and rollout considerations.
@@ -38,7 +38,7 @@ The next design should broaden what pilots can communicate, how the system under
 4. **Safety-relevant facts stay authoritative.** A language or audio model can interpret and express intent; deterministic simulation rules decide whether it is valid and what changes.
 5. **Stable identity, varied delivery.** An aircraft should sound like the same crew over a session while varying wording and delivery appropriately.
 6. **Radio realism over theatricality.** Aim for believable, clear, concise ATC audio with natural cadence, not dramatic acting or unnecessary chatter.
-7. **Online services are allowed.** Design for cloud speech recognition and premium speech synthesis, with provider abstractions, secret handling, cost visibility, and graceful failure. Offline operation is not a product constraint.
+7. **Cloud-first speech.** Use cloud speech recognition and premium synthesis by default, with server-side credentials, cost visibility, and graceful degradation. Piper may be installed as the sole offline speech fallback; local Whisper and Kokoro models are not part of the stack.
 8. **Simulation rules and phraseology require aviation review.** Generated language must be checked against the chosen UK operating context and current source material before it is presented as procedurally correct.
 
 ## 4. Target communication model
@@ -290,7 +290,7 @@ Build a versioned audio corpus of scripted and naturally worded calls, including
 
 ### Phase 1 — Product and phraseology foundation
 
-* Update the master spec’s offline/local constraint and its blanket prohibition on LLM-generated wording.
+* Keep the master spec aligned with the cloud-first speech stack, Piper-only offline fallback, and validated boundary for generated dialogue.
 * Define the communication-act catalogue, ground-only capabilities, callsign/reference resolution, and approved authority boundaries.
 * Produce the reviewed readback matrix, pronunciation lexicon, interaction examples, and audio audition corpus.
 * Choose what “open game” means for the first playable release and what operations are not yet simulated.

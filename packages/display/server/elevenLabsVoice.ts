@@ -1,6 +1,4 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 interface RemoteVoice {
   voice_id: string;
@@ -24,7 +22,6 @@ export interface ElevenLabsOptions {
   modelId: string;
   pilotVoiceIds?: string;
   controllerVoiceId?: string;
-  cacheDir: string;
 }
 
 export class ElevenLabsVoiceProvider {
@@ -32,6 +29,7 @@ export class ElevenLabsVoiceProvider {
   private entries: VoiceEntry[] = [];
   private loadPromise: Promise<void> | null = null;
   private readonly inFlight = new Map<string, Promise<Buffer>>();
+  private readonly audioCache = new Map<string, Buffer>();
 
   constructor(private readonly options: ElevenLabsOptions) {}
 
@@ -65,16 +63,18 @@ export class ElevenLabsVoiceProvider {
     if (text === '') throw new Error('Nothing to say');
 
     const hash = createHash('sha256').update(`${this.options.modelId}|${entry.voice}|0.55|0.8|${text}`).digest('hex');
-    mkdirSync(this.options.cacheDir, { recursive: true });
-    const file = join(this.options.cacheDir, `${hash}.mp3`);
-    if (existsSync(file)) return readFileSync(file);
+    const cached = this.audioCache.get(hash);
+    if (cached !== undefined) return cached;
 
     const active = this.inFlight.get(hash);
     if (active !== undefined) return active;
-    const work = this.generate(text, entry.voice, file);
+    const work = this.generate(text, entry.voice);
     this.inFlight.set(hash, work);
     try {
-      return await work;
+      const audio = await work;
+      if (this.audioCache.size >= 128) this.audioCache.delete(this.audioCache.keys().next().value!);
+      this.audioCache.set(hash, audio);
+      return audio;
     } finally {
       this.inFlight.delete(hash);
     }
@@ -123,7 +123,7 @@ export class ElevenLabsVoiceProvider {
     ];
   }
 
-  private async generate(text: string, voiceId: string, file: string): Promise<Buffer> {
+  private async generate(text: string, voiceId: string): Promise<Buffer> {
     const url = new URL(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`);
     url.searchParams.set('output_format', 'mp3_44100_128');
     const response = await fetch(url, {
@@ -147,7 +147,6 @@ export class ElevenLabsVoiceProvider {
       }
       throw new Error(message);
     }
-    writeFileSync(file, bytes);
     return bytes;
   }
 }

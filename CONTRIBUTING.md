@@ -16,7 +16,7 @@ Good first contributions include documentation fixes, reproducible bug reports, 
 4. Run `npm run typecheck` and `npm test` before opening a pull request.
 5. Start the display with `npm run display`.
 
-Microphone transcription needs `OPENAI_API_KEY` in a local `.env` file. Copy `.env.example`; never put a real key in a commit, issue, screenshot, or pull request. Voice assets and generated airport data are local downloads and must stay out of commits unless their redistribution terms have been verified.
+Microphone transcription uses OpenAI Whisper and needs `OPENAI_API_KEY` in a local `.env` file. ElevenLabs is the primary radio voice provider; Piper is the only local speech model and is an optional offline fallback (`npm run piper:fetch`). Copy `.env.example`; never put a real key in a commit, issue, screenshot, or pull request. Piper assets and generated airport data are local downloads and must stay out of commits unless their redistribution terms have been verified.
 
 ## Pull requests
 
