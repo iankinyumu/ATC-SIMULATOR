@@ -26,8 +26,8 @@ export function phrasePieces(spoken: string): string[] {
 }
 
 /**
- * Plays radio transmissions with local voices (spec §22). Text is turned into words with the
- * phraseology spoken form and fetched in pieces from the local voice server (/api/voice).
+ * Plays radio transmissions through the configured voice provider (spec §22). Text is turned into
+ * its phraseology spoken form and fetched from the server-side voice endpoint (/api/voice).
  * Transmissions play one at a time, like a real frequency.
  */
 export class RadioAudio {
@@ -73,13 +73,15 @@ export class RadioAudio {
   /** Starts generating a call in the background (e.g. a readback, or a request the pilot will make). */
   prepare(voice: string, text: string): void {
     if (!this.available) return;
-    for (const piece of phrasePieces(toSpoken(text))) this.piece(voice, piece, 'prefetch');
+    // Do not spend ElevenLabs credits on speculative calls that may never be transmitted.
+    if (this.status?.engine === 'ElevenLabs') return;
+    for (const piece of this.speechSegments(text)) this.piece(voice, piece, 'prefetch');
   }
 
   /** Plays a call after any that are already playing, each piece as soon as it is ready. */
   play(voice: string, text: string): void {
     if (!this.available || !this.enabled || !this.unlocked) return;
-    const buffers = phrasePieces(toSpoken(text)).map((p) => this.piece(voice, p, 'now'));
+    const buffers = this.speechSegments(text).map((p) => this.piece(voice, p, 'now'));
     const requestedAt = performance.now();
     const generation = this.generation;
     this.chain = this.chain.then(async () => {
@@ -107,6 +109,12 @@ export class RadioAudio {
 
   private get available(): boolean {
     return this.status?.available === true;
+  }
+
+  private speechSegments(text: string): string[] {
+    const spoken = toSpoken(text);
+    // Cloud synthesis should receive the full call for natural phrasing and fewer paid requests.
+    return this.status?.engine === 'ElevenLabs' ? [spoken] : phrasePieces(spoken);
   }
 
   private piece(voice: string, text: string, priority: 'now' | 'prefetch'): Promise<AudioBuffer | null> {

@@ -10,11 +10,11 @@ An open-source air traffic control simulation built to support multiple airports
 * EGLL ground map and taxi route finding from generated local airport data.
 * Ground aircraft movement, stand occupancy/fit checks, clearances, pilot requests, and controller command checks.
 * A PixiJS display with flight strips, radio log, map inspection, route preview, and command line.
-* Local pilot radio text-to-speech using Piper or Kokoro after downloading voice assets.
-* Push-to-talk speech transcription through OpenAI Whisper (`whisper-1`); the transcript is reviewed in the command line before it is sent.
+* Server-side radio speech using ElevenLabs with distinct pilot/controller voices when configured; Piper or Kokoro remain available as local providers.
+* Push-to-talk transcription through OpenAI Whisper (`whisper-1`), followed by a GPT-6 Luna command suggestion. The suggestion is parsed, shown for review, and never sent automatically.
 * Typed instructions as an accessible and development fallback.
 
-See [the master specification](EGLL_ATC_Simulation_V1_Master_Spec.md) for the first airport's goals and known gaps. The [roadmap](ROADMAP.md) tracks the shared airport architecture and future airport contributions. The [radio and pilot communication plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md) describes the planned Whisper, GPT-6 Luna, and ElevenLabs conversation stack; GPT-6 Luna dialogue and ElevenLabs voice output are not integrated yet.
+See [the master specification](EGLL_ATC_Simulation_V1_Master_Spec.md) for the first airport's goals and known gaps. The [roadmap](ROADMAP.md) tracks shared airport architecture and future airport contributions. The [radio and pilot communication plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md) describes the target dialogue system. GPT-6 Luna currently turns speech transcripts into reviewable command suggestions; pilot dialogue generation remains deterministic.
 
 ## Run it locally
 
@@ -24,13 +24,14 @@ Requirements: Node.js LTS and npm. From the repository root:
 npm install
 npm run data:fetch
 npm run data:build
-npm run voices:fetch
 npm run display
 ```
 
-Open `http://localhost:5173`. Data fetching needs an internet connection. It downloads source material into ignored folders and builds the local EGLL dataset. Voice fetching downloads third-party model files; those assets are not committed.
+Open `http://localhost:5173`. Data fetching needs an internet connection. It downloads source material into ignored folders and builds the local EGLL dataset.
 
-To enable microphone transcription, set `OPENAI_API_KEY` in a root `.env` file (copy `.env.example`) or in the environment, then restart the display server. The current `whisper-1` model is scheduled for removal by OpenAI on February 26, 2027; see the communication plan for the migration requirement. Audio is sent to OpenAI when transcribed. Never commit API keys or raw audio.
+Copy `.env.example` to `.env`, add your OpenAI and ElevenLabs keys, and restart the display server. OpenAI receives recorded microphone audio for Whisper transcription and the transcript plus airport command context for GPT-6 Luna interpretation. The result stays in the command line for review and deterministic validation. ElevenLabs receives radio text for synthesis; the server loads up to ten English premade voices from your account and assigns stable voices to pilots and the controller. No keys are sent to the browser.
+
+The current `whisper-1` model is scheduled for removal by OpenAI on February 26, 2027; see the communication plan for the migration requirement. If you prefer local speech output, set `VOICE_PROVIDER=local` and run `npm run voices:fetch` to download Piper/Kokoro assets. The app uses local voices when no ElevenLabs key is configured. API usage can incur provider charges; check your account limits.
 
 Useful commands:
 

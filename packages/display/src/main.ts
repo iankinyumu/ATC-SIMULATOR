@@ -18,6 +18,7 @@ import {
   type CommandKind,
   type CommandParams,
   type HoldingPoint,
+  type ParseContext,
   type Route,
   type SimSpeed,
   type Stand,
@@ -399,10 +400,7 @@ async function main() {
     },
   });
 
-  const commandLine = new CommandLine($<HTMLInputElement>('cmd'), $('cmd-status'), $('cmd-target'), {
-    world,
-    positionId: PLAYER_POSITION,
-    context: () => ({
+  const parseContext = (): ParseContext => ({
       callsigns: world.allAircraft().map((a) => a.callsign),
       holdingPoints: [...new Set(data.holdingPoints.map((h) => h.name).filter((n): n is string => n !== null))],
       stands: data.stands.map((s) => s.name),
@@ -410,7 +408,11 @@ async function main() {
       runways: data.runways.map((r) => r.designator),
       defaultCallsign: traffic.selected,
       callsignAliases: Object.fromEntries(world.allAircraft().map((a) => [a.radioCallsign, a.callsign])),
-    }),
+    });
+  const commandLine = new CommandLine($<HTMLInputElement>('cmd'), $('cmd-status'), $('cmd-target'), {
+    world,
+    positionId: PLAYER_POSITION,
+    context: parseContext,
     onPreview: (path) => {
       traffic.previewPath = path;
       render();
@@ -425,7 +427,39 @@ async function main() {
   new SpeechInput(
     $<HTMLButtonElement>('mic'),
     $('cmd-status'),
-    (transcript) => commandLine.setText(transcript),
+    async (transcript) => {
+      commandLine.setText(transcript);
+      const status = $('cmd-status');
+      status.className = 'hint';
+      status.textContent = 'Asking GPT-6 Luna for a command suggestion. Review it before sending.';
+      try {
+        const response = await fetch('/api/interpret', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript, context: parseContext() }),
+        });
+        const result = (await response.json()) as { suggestion?: string; clarification?: string; error?: string };
+        if (!response.ok) throw new Error(result.error ?? 'GPT-6 Luna interpretation is unavailable.');
+        if (result.suggestion?.trim()) {
+          commandLine.setText(result.suggestion.trim());
+          if (status.className === 'ok' || status.className === 'caution') {
+            status.className = 'caution';
+            status.textContent = 'GPT-6 Luna suggestion. Check the parsed command and route preview, then press Enter to send.';
+          } else {
+            status.textContent = `GPT suggestion needs correction: ${status.textContent}`;
+          }
+        } else {
+          commandLine.setText(transcript);
+          status.className = 'caution';
+          status.textContent = result.clarification || 'GPT-6 Luna could not safely map that to a supported command. Edit the transcript manually.';
+        }
+      } catch (error) {
+        commandLine.setText(transcript);
+        status.className = 'caution';
+        const reason = error instanceof Error ? error.message : 'service request failed';
+        status.textContent = `GPT-6 Luna unavailable (${reason}); transcript kept for manual editing.`;
+      }
+    },
     () => {
       const names = world.allAircraft().flatMap((a) => [a.callsign, a.radioCallsign]);
       return `UK air traffic control ground radio phraseology. Callsigns currently active: ${names.join(', ')}. Common words: taxi, holding point, stand, pushback, approved, face east, via, cross runway, hold position, continue taxi.`.slice(0, 1000);
@@ -606,7 +640,7 @@ async function main() {
   const audioState = $('audio-state');
   const showAudioState = () => {
     if (radio.status === null) audioState.textContent = 'VOICES: SERVER NOT RUNNING';
-    else if (!radio.status.available) audioState.textContent = 'VOICES NOT INSTALLED';
+    else if (!radio.status.available) audioState.textContent = 'VOICES UNAVAILABLE';
     else if (!radio.unlocked) audioState.textContent = '🔈 CLICK TO ENABLE RADIO AUDIO';
     else if (!radio.enabled) audioState.textContent = 'VOICES OFF';
     else audioState.textContent = voicesNow() ? '🔊 RADIO' : '🔇 TEXT ONLY (speed)';
@@ -624,7 +658,10 @@ async function main() {
     const el = $('voice-status');
     if (status === null) el.textContent = 'Voice server not reachable.';
     else if (!status.available) el.innerHTML = `<span class="warn">${escapeHtml(status.problem ?? 'Unavailable')}</span>`;
-    else el.innerHTML = `${escapeHtml(status.engine)} voices ready (offline) · ${status.voices.length - 1} pilot voices + controller<br><span class="hint">${escapeHtml(status.attribution)}</span>`;
+    else {
+      const mode = status.engine === 'ElevenLabs' ? 'cloud' : 'offline';
+      el.innerHTML = `${escapeHtml(status.engine)} voices ready (${mode}) · ${status.voices.length - 1} pilot voices + controller<br><span class="hint">${escapeHtml(status.attribution)}</span>`;
+    }
     showAudioState();
   });
   $<HTMLInputElement>('voice-on').addEventListener('change', (e) => {

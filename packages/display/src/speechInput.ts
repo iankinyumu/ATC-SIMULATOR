@@ -7,7 +7,7 @@ export class SpeechInput {
   constructor(
     private readonly button: HTMLButtonElement,
     private readonly status: HTMLElement,
-    private readonly onTranscript: (text: string) => void,
+    private readonly onTranscript: (text: string) => void | Promise<void>,
     private readonly prompt: () => string,
   ) {
     button.addEventListener('click', () => {
@@ -65,9 +65,9 @@ export class SpeechInput {
       if (!response.ok) throw new Error(result.error ?? 'Transcription failed.');
       const text = result.text?.trim() ?? '';
       if (!text) throw new Error('Whisper did not detect any speech.');
-      this.onTranscript(text);
       this.status.className = 'hint';
-      this.status.textContent = 'Transcript added to the command line. Check it, then press Enter to send.';
+      this.status.textContent = 'Transcript received.';
+      await this.onTranscript(text);
     } catch (error) {
       this.showError(error instanceof Error ? error.message : 'Transcription failed.');
     }

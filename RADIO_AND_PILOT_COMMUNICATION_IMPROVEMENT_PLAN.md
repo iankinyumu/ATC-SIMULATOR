@@ -1,8 +1,8 @@
 # Radio, Pilot Dialogue, and Voice Realism Improvement Plan
 
-**Status:** Product/design proposal  
+**Status:** Design plan with initial API integrations
 **Scope:** Speech, radio dialogue, pilot behaviour, and generated voices  
-**Implementation:** No code changes are included in this document.
+**Implementation:** Whisper transcription, GPT-6 Luna transcript-to-command suggestions, and ElevenLabs TTS are integrated in the display server. Model-generated pilot dialogue is still a future milestone; current pilot wording remains deterministic.
 
 **Chosen speech stack:** OpenAI Whisper (`whisper-1`, with a required migration before its announced retirement) for player speech input/transcription; GPT-6 Luna (`gpt-6-luna`) for interpreting player intent and generating context-aware conversation; ElevenLabs for spoken audio output. These services have separate roles: Whisper recognizes speech, GPT-6 Luna handles the conversation, and ElevenLabs voices the resulting text. GPT-6 Luna is available in the project owner's API account; API access and billing still depend on the account's limits and credits.
 
@@ -23,9 +23,10 @@ The current implementation and master spec establish useful foundations, but the
 * The pilot agent mainly raises pushback, ready-for-taxi, taxi-to-stand, and holding reports on fixed state/timing rules.
 * Readbacks are assembled from structured commands using a small number of fixed strings.
 * Requests and pilot calls use fixed templates in `phraseology.ts`.
-* The active voice configuration is Piper; Kokoro is an available local alternative. The audio-provider boundary is a good start, but the current voices do not meet the requested human-realistic target.
-* Speech input currently sends a push-to-talk recording to OpenAI Whisper, then places the recognized text in the command line for review. The typed command parser still represents a bounded command set, rather than general radio conversation.
-* The master spec has now been updated to reflect the selected cloud speech stack and grounded, open-ended dialogue direction. This plan contains the detailed communication requirements and rollout considerations.
+* ElevenLabs can supply up to ten English premade pilot voices and a separate controller voice; Piper/Kokoro remain local alternatives. Voice choice and delivery still need review for believable ATC radio quality.
+* Speech input sends push-to-talk audio to Whisper, then GPT-6 Luna maps the transcript to a candidate command. The command is placed in the line for controller review and passes the existing deterministic parser before it can be sent.
+* GPT-6 Luna does not yet generate pilot dialogue. Requests, readbacks, and reports remain deterministic templates, and natural-language conversation is bounded by the current command grammar.
+* The master spec reflects the selected cloud speech stack and grounded, open-ended dialogue direction. This plan contains the remaining requirements and rollout considerations.
 
 The next design should broaden what pilots can communicate, how the system understands the player, how voice is produced, and how dialogue participates in game state.
 

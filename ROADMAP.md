@@ -6,8 +6,9 @@ This is a community roadmap, not a promise that each item is scheduled. We welco
 
 * Deterministic ground simulation core, seeded traffic, event log, and replay foundations.
 * EGLL surface-data import/build workflow and route finding.
-* PixiJS surface display, command entry, strips, and local radio TTS.
-* OpenAI Whisper-based push-to-talk transcription with transcript review.
+* PixiJS surface display, command entry, strips, and configurable local/cloud radio TTS.
+* OpenAI Whisper transcription with GPT-6 Luna command suggestions that remain subject to parser validation and controller review.
+* ElevenLabs multi-voice synthesis through server-side credentials, with Piper/Kokoro local fallback.
 
 ## Near term: make the ground game dependable
 
@@ -21,8 +22,8 @@ This is a community roadmap, not a promise that each item is scheduled. We welco
 
 The target service roles are OpenAI speech transcription, GPT-6 Luna for grounded dialogue and intent interpretation, and ElevenLabs for varied pilot/controller voices. See [Radio and Pilot Communication Improvement Plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md).
 
-* Add a larger, stable multi-voice roster for aircraft crews and controller positions.
-* Expand pilot requests, reports, clarifications, readbacks, corrections, and context-aware follow-ups.
+* Generate varied pilot requests, reports, clarifications, readbacks, corrections, and context-aware follow-ups while preserving required operational facts.
+* Add voice selection controls and test different account voices for clarity, identity, and radio intelligibility.
 * Let the player use natural wording and multi-turn references, with clarification when intent is uncertain.
 * Keep model output behind deterministic authority, route, and clearance validation.
 * Measure voice quality, intelligibility, service cost, latency, and radio workload.

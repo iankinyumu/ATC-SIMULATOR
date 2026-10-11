@@ -1,7 +1,6 @@
 /**
- * Local text-to-speech for radio voices (spec §22). Runs on this machine; no online API.
- * Two engines: Kokoro (natural, slower) and Piper (faster, more synthetic), chosen in
- * data/voices/voices.json. Served by the Vite dev server at /api/voice; audio is cached on disk.
+ * Server-side radio speech providers. ElevenLabs is selected when its API key is configured;
+ * otherwise the local Kokoro/Piper provider is used. Audio is served through Vite and cached locally.
  */
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -9,6 +8,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import type { Plugin } from 'vite';
+import { ElevenLabsVoiceProvider } from './elevenLabsVoice';
 
 interface VoiceEntry {
   id: string;
@@ -358,23 +358,62 @@ export class LocalVoices {
 }
 
 /** Vite plugin serving GET /api/voice/status and GET /api/voice/tts?voice=…&text=…&priority=now|prefetch */
-export function localVoicePlugin(paths: VoicePaths): Plugin {
+export interface VoiceProviderOptions {
+  apiKey?: string;
+  provider?: string;
+  modelId?: string;
+  pilotVoiceIds?: string;
+  controllerVoiceId?: string;
+}
+
+export function localVoicePlugin(paths: VoicePaths, options: VoiceProviderOptions = {}): Plugin {
   let voices: LocalVoices | null = null;
+  let elevenLabs: ElevenLabsVoiceProvider | null = null;
+  const useElevenLabs = options.provider !== 'local' && Boolean(options.apiKey);
   const send = (res: ServerResponse, status: number, body: unknown) => {
     res.statusCode = status;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(body));
   };
   return {
-    name: 'atc-local-voice',
+    name: 'atc-radio-voice',
     configureServer(server) {
-      voices = new LocalVoices(paths);
+      if (useElevenLabs) {
+        elevenLabs = new ElevenLabsVoiceProvider({
+          apiKey: options.apiKey!,
+          modelId: options.modelId || 'eleven_multilingual_v2',
+          pilotVoiceIds: options.pilotVoiceIds,
+          controllerVoiceId: options.controllerVoiceId,
+          cacheDir: paths.cacheDir,
+        });
+      } else {
+        voices = new LocalVoices(paths);
+      }
       server.httpServer?.on('close', () => voices?.stop());
       server.middlewares.use('/api/voice', (req: IncomingMessage, res: ServerResponse) => {
         const url = new URL(req.url ?? '/', 'http://localhost');
-        if (url.pathname === '/status') return send(res, 200, voices!.status());
+        if (url.pathname === '/status') {
+          if (elevenLabs !== null) {
+            void elevenLabs.status().then((status) => send(res, status.available ? 200 : 503, status));
+            return;
+          }
+          return send(res, 200, voices!.status());
+        }
         if (url.pathname !== '/tts') return send(res, 404, { error: 'Not found' });
+        if (req.method !== 'GET') return send(res, 405, { error: 'Use GET to synthesize speech.' });
         const priority: Priority = url.searchParams.get('priority') === 'prefetch' ? 'prefetch' : 'now';
+        if (elevenLabs !== null) {
+          elevenLabs
+            .speak(url.searchParams.get('voice') ?? '', url.searchParams.get('text') ?? '')
+            .then((audio) => {
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'audio/mpeg');
+              res.setHeader('Cache-Control', 'max-age=31536000, immutable');
+              res.end(audio);
+            })
+            .catch((err: Error) => send(res, 503, { error: err.message }));
+          return;
+        }
         voices!
           .speak(url.searchParams.get('voice') ?? '', url.searchParams.get('text') ?? '', priority)
           .then((file) => {
