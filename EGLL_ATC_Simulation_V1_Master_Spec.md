@@ -31,7 +31,7 @@ These recommendations are defaults, not fixed requirements. Changes should be di
 |---|-------|----------------|---------|
 | R1 | Clearance delivery | Ground handles clearance delivery in V1. The data model keeps "Delivery" as a separate **function** that is merged into Ground, so it can be split out later. | §7 |
 | R2 | Technology stack | TypeScript throughout. Headless simulation core, 2D rendering with PixiJS (WebGL), packaged as an Electron desktop app. | §45, B0 |
-| R3 | Speech and dialogue | OpenAI Whisper transcription for player input, GPT-4o mini for bounded conversation/intent interpretation, and ElevenLabs for cloud voice output. Current `whisper-1` is scheduled for retirement; migrate before its announced removal. Simulation validation remains deterministic. | §21A, §22, communication plan |
+| R3 | Speech and dialogue | OpenAI Whisper transcription for player input, GPT-6 Luna for bounded conversation/intent interpretation, and ElevenLabs for cloud voice output. Current `whisper-1` is scheduled for retirement; migrate before its announced removal. Simulation validation remains deterministic. | §21A, §22, communication plan |
 | R4 | Aircraft performance | OpenAP (open-source) as the performance source, with ICAO Doc 8643 for type designators and wake categories. Values not covered are placeholders in the provenance register. | §15 |
 
 Where a decision simplifies real-world operations, it is an approved simplification under Rule 2 (§41) and does not need to be re-approved.
@@ -360,7 +360,7 @@ The bot controller is:
 * local and offline
 * rule-based and deterministic (given the same seed and inputs, it makes the same decisions)
 * preloaded with procedures from the operational dataset
-* deterministic simulation rules; GPT-4o mini may select/realize bounded dialogue but does not apply world-state changes
+* deterministic simulation rules; GPT-6 Luna may select/realize bounded dialogue but does not apply world-state changes
 
 The bot controller must use the **same** systems as the player:
 
@@ -693,7 +693,7 @@ The simulation should support appropriate communication state.
 
 # 19A. PILOT RESPONSE MODEL (Decision D4)
 
-Pilot actions and timing are grounded in the simulation state. GPT-4o mini may plan a permitted communication act and phrase the call, but deterministic rules validate the facts and apply any world-state changes.
+Pilot actions and timing are grounded in the simulation state. GPT-6 Luna may plan a permitted communication act and phrase the call, but deterministic rules validate the facts and apply any world-state changes.
 
 Timing:
 
@@ -786,7 +786,7 @@ push-to-talk (selected frequency)
       ↓
 audio capture
       ↓
-OpenAI Whisper transcription + GPT-4o mini intent interpretation
+OpenAI Whisper transcription + GPT-6 Luna intent interpretation
       ↓
 typed intent + dialogue turn
       ↓
@@ -812,7 +812,7 @@ Requirements:
 Recommended implementation (R3):
 
 * **Transcription**: OpenAI Whisper is the current input transcription service. The `whisper-1` model is scheduled to be removed on 26 February 2027; select and evaluate its replacement before that date.
-* **Dialogue interpretation**: GPT-4o mini maps transcripts to typed intents, references, and confidence/ambiguity; generated pilot replies are grounded in current context and validated simulation facts.
+* **Dialogue interpretation**: GPT-6 Luna maps transcripts to typed intents, references, and confidence/ambiguity; generated pilot replies are grounded in current context and validated simulation facts.
 * **Validation**: deterministic command, authority, and state checks decide whether an interpreted request can change the world. A model output alone never executes an action.
 * **Interfaces**: transcription, conversation, and TTS remain separately replaceable services so a provider change does not change the simulation core.
 
@@ -1760,7 +1760,7 @@ This is the recommended starting point. It may be changed during Stage 1 plannin
 | 2D rendering | PixiJS (WebGL) | Fast 2D drawing of a detailed airport plan and many radar targets and tags. |
 | UI panels | Simple web UI (for example React or plain TypeScript) | Lists, strips and settings around the main display. |
 | Desktop shell | Browser-first Vite app; desktop packaging remains an option | Microphone access, local files, and future desktop distribution. |
-| Speech and conversation | OpenAI Whisper input transcription; GPT-4o mini bounded conversation layer | Cloud services with server-side keys; replaceable; validated against the simulation. |
+| Speech and conversation | OpenAI Whisper input transcription; GPT-6 Luna bounded conversation layer | Cloud services with server-side keys; replaceable; validated against the simulation. |
 | Voice | ElevenLabs cloud TTS behind an audio provider interface | Human-realistic voice output with stable multi-voice roster. |
 | Data | Versioned JSON files checked by schemas (for example Zod); SQLite later if needed | Easy to review and compare between dataset versions. |
 | Tests | Vitest, plus golden scenario tests (§44) | Fast unit tests and full-session replay tests. |

@@ -19,7 +19,7 @@ This is a community roadmap, not a promise that each item is scheduled. We welco
 
 ## Communication upgrade
 
-The target service roles are OpenAI speech transcription, GPT-4o mini for grounded dialogue and intent interpretation, and ElevenLabs for varied pilot/controller voices. See [Radio and Pilot Communication Improvement Plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md).
+The target service roles are OpenAI speech transcription, GPT-6 Luna for grounded dialogue and intent interpretation, and ElevenLabs for varied pilot/controller voices. See [Radio and Pilot Communication Improvement Plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md).
 
 * Add a larger, stable multi-voice roster for aircraft crews and controller positions.
 * Expand pilot requests, reports, clarifications, readbacks, corrections, and context-aware follow-ups.

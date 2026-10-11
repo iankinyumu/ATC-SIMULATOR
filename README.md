@@ -14,7 +14,7 @@ An open-source air traffic control simulation built to support multiple airports
 * Push-to-talk speech transcription through OpenAI Whisper (`whisper-1`); the transcript is reviewed in the command line before it is sent.
 * Typed instructions as an accessible and development fallback.
 
-See [the master specification](EGLL_ATC_Simulation_V1_Master_Spec.md) for the first airport's goals and known gaps. The [roadmap](ROADMAP.md) tracks the shared airport architecture and future airport contributions. The [radio and pilot communication plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md) describes the planned Whisper, GPT-4o mini, and ElevenLabs conversation stack; GPT-4o mini dialogue and ElevenLabs voice output are not integrated yet.
+See [the master specification](EGLL_ATC_Simulation_V1_Master_Spec.md) for the first airport's goals and known gaps. The [roadmap](ROADMAP.md) tracks the shared airport architecture and future airport contributions. The [radio and pilot communication plan](RADIO_AND_PILOT_COMMUNICATION_IMPROVEMENT_PLAN.md) describes the planned Whisper, GPT-6 Luna, and ElevenLabs conversation stack; GPT-6 Luna dialogue and ElevenLabs voice output are not integrated yet.
 
 ## Run it locally
 

@@ -4,9 +4,9 @@
 **Scope:** Speech, radio dialogue, pilot behaviour, and generated voices  
 **Implementation:** No code changes are included in this document.
 
-**Chosen speech stack:** OpenAI Whisper (`whisper-1`, with a required migration before its announced retirement) for player speech input/transcription; GPT-4o mini for interpreting player intent and generating context-aware conversation; ElevenLabs for spoken audio output. These services have separate roles: Whisper recognizes speech, GPT-4o mini handles the conversation, and ElevenLabs voices the resulting text.
+**Chosen speech stack:** OpenAI Whisper (`whisper-1`, with a required migration before its announced retirement) for player speech input/transcription; GPT-6 Luna (`gpt-6-luna`) for interpreting player intent and generating context-aware conversation; ElevenLabs for spoken audio output. These services have separate roles: Whisper recognizes speech, GPT-6 Luna handles the conversation, and ElevenLabs voices the resulting text. GPT-6 Luna is available in the project owner's API account; API access and billing still depend on the account's limits and credits.
 
-Provider references: [Whisper transcription](https://platform.openai.com/docs/api-reference/audio/json-object), [GPT-4o mini](https://developers.openai.com/api/docs/models/gpt-4o-mini), and [ElevenLabs text to speech](https://elevenlabs.io/docs/overview/capabilities/text-to-speech).
+Provider references: [Whisper transcription](https://platform.openai.com/docs/api-reference/audio/json-object), [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna), and [ElevenLabs text to speech](https://elevenlabs.io/docs/overview/capabilities/text-to-speech).
 
 ## 1. Goal
 
@@ -208,9 +208,9 @@ Stream TTS when supported so a queued call can begin promptly. Prefetch likely c
 
 Cloud use means audio and text may leave the local machine. Make retention explicit, keep raw player audio off by default unless the player opts in, and provide a way to clear saved recordings/cache. Give the player a visible indicator when cloud speech services are in use.
 
-## 9. GPT-4o mini conversation layer and correctness boundary
+## 9. GPT-6 Luna conversation layer and correctness boundary
 
-Use **GPT-4o mini as the conversation model**. It interprets Whisper transcripts into supported player intents and references, and generates context-aware pilot wording and replies. It is the actual dialogue layer; ElevenLabs only renders its approved text as audio. GPT-4o mini is not the authority for the simulation.
+Use **GPT-6 Luna as the conversation model**. It interprets Whisper transcripts into supported player intents and references, and generates context-aware pilot wording and replies. It is the actual dialogue layer; ElevenLabs only renders its approved text as audio. GPT-6 Luna is not the authority for the simulation.
 
 Target flow:
 
@@ -219,7 +219,7 @@ Player microphone
     ↓
 OpenAI Whisper transcription
     ↓
-GPT-4o mini: intent/reference understanding + conversation turn
+GPT-6 Luna: intent/reference understanding + conversation turn
     ↓
 deterministic simulation and clearance validation
     ↓
@@ -232,15 +232,15 @@ radio playback + transcript
 
 The model may need two short calls in a turn—one to interpret the player and another to generate the pilot reply—or one structured call where the player intent and response can both be safely prepared. Prefer the simplest design that meets latency and validation targets. Speech capture and transcription remain separate from the conversation call, and text can still be entered directly for testing and accessibility.
 
-For pilot generation, provide GPT-4o mini only the current aircraft state, relevant clearance, frequency context, crew profile, recent turns, allowed communication acts, and required facts. Require a structured result containing the selected act, factual slots, and candidate wording. Validate the act and every slot against live simulation state before scheduling audio. Reject or regenerate outputs that add permissions, change a route/limit, claim an unobserved event, or contradict the crew’s actual state.
+For pilot generation, provide GPT-6 Luna only the current aircraft state, relevant clearance, frequency context, crew profile, recent turns, allowed communication acts, and required facts. Require a structured result containing the selected act, factual slots, and candidate wording. Validate the act and every slot against live simulation state before scheduling audio. Reject or regenerate outputs that add permissions, change a route/limit, claim an unobserved event, or contradict the crew’s actual state.
 
-For player understanding, Whisper provides the transcript and GPT-4o mini maps varied natural speech to a typed intent and references, with uncertainty represented explicitly. The deterministic command/authority validator remains the gate. Ambiguity should trigger a clarification; a low-confidence model must not silently choose an aircraft or safety-critical value.
+For player understanding, Whisper provides the transcript and GPT-6 Luna maps varied natural speech to a typed intent and references, with uncertainty represented explicitly. The deterministic command/authority validator remains the gate. Ambiguity should trigger a clarification; a low-confidence model must not silently choose an aircraft or safety-critical value.
 
 Keep language generation outside the deterministic simulation core. Save the validated communication event and the chosen transcript/audio asset so replay does not depend on nondeterministic cloud responses. Use seeded selection among preapproved variants where possible. If the player requests exact deterministic replay, reproduce the original transcript and audio asset.
 
-### GPT-4o mini roles
+### GPT-6 Luna roles
 
-These are logical responsibilities assigned to the same GPT-4o mini service, not separate autonomous agents. Keep prompts and outputs narrow, and combine compatible responsibilities into one structured request when it meets quality and latency goals.
+These are logical responsibilities assigned to the same GPT-6 Luna service, not separate autonomous agents. Keep prompts and outputs narrow, and combine compatible responsibilities into one structured request when it meets quality and latency goals.
 
 | Role | When it runs | Inputs | Output and boundary |
 |---|---|---|---|
@@ -303,14 +303,14 @@ Build a versioned audio corpus of scripted and naturally worded calls, including
 
 ### Phase 3 — Conversational pilots
 
-* Integrate GPT-4o mini as the bounded dialogue layer; expand pilot state and communication acts.
+* Integrate GPT-6 Luna as the bounded dialogue layer; expand pilot state and communication acts.
 * Add varied, context-grounded readbacks, corrections, routine reports, route clarifications, unable responses, and state-based requests.
 * Add stable crew profiles, varied response timing, and scenario-controlled errors.
 * Keep every utterance linked to a validated simulation event.
 
 ### Phase 4 — Natural player radio
 
-* Pass Whisper transcripts into GPT-4o mini for intent/entity interpretation and supported multi-turn dialogue.
+* Pass Whisper transcripts into GPT-6 Luna for intent/entity interpretation and supported multi-turn dialogue.
 * Add confidence and ambiguity handling, contextual references, clarification turns, and transcript/meaning review.
 * Keep the deterministic validator as the only path from interpreted speech to world-state change.
 * Evaluate recognition and conversational coverage with the versioned corpus.
@@ -337,7 +337,7 @@ The upgrade is ready for broad play when:
 
 ## 14. Decisions to make before implementation
 
-1. What uncertainty threshold from Whisper/GPT-4o mini should require a clarification?
+1. What uncertainty threshold from Whisper/GPT-6 Luna should require a clarification?
 2. Should raw player audio ever be saved, and what is the default retention period for audio and generated clips?
 3. How much radio noise and overlap should be enabled by default, and what accessibility controls are required?
 4. Which spoken accents/locales are in the initial 16-pilot/3–5-controller voice roster, and which operations are in the first dialogue catalogue?
@@ -354,11 +354,11 @@ This is an initial **usage budget**, not a vendor quote. It gives a comparable c
 | Service | Planned use | Current planning rate | Cost basis |
 |---|---|---:|---|
 | OpenAI Whisper (`whisper-1`) | Transcribe controller push-to-talk audio | **$0.006/minute** | Duration of audio uploaded for transcription |
-| GPT-4o mini | Interpret turns and generate bounded dialogue | **$0.15/1M input tokens; $0.60/1M output tokens** | Tokens sent and returned |
+| GPT-6 Luna | Interpret turns and generate bounded dialogue | **$0.10/1M input tokens; $0.50/1M output tokens** | Tokens sent and returned |
 | ElevenLabs v3 Conversational | Primary low-latency TTS candidate | **$0.05/1,000 characters** | Characters synthesized in the selected voice |
 | ElevenLabs v3 or Multilingual v2 | Higher-quality audition candidate | **$0.10/1,000 characters** | Characters synthesized in the selected voice |
 
-Sources: [OpenAI Whisper pricing](https://developers.openai.com/api/docs/models/whisper-1), [OpenAI transcription model lifecycle](https://developers.openai.com/api/docs/deprecations), [GPT-4o mini pricing](https://developers.openai.com/api/docs/models/gpt-4o-mini), and [ElevenLabs API pricing](https://elevenlabs.io/pricing/api). ElevenLabs model/plan discounts, included credits, premium voice multipliers, taxes, and account-specific terms may change the effective rate.
+Sources: [OpenAI Whisper pricing](https://developers.openai.com/api/docs/models/whisper-1), [OpenAI transcription model lifecycle](https://developers.openai.com/api/docs/deprecations), [GPT-6 Luna pricing](https://developers.openai.com/api/docs/models/gpt-6-luna), and [ElevenLabs API pricing](https://elevenlabs.io/pricing/api). ElevenLabs model/plan discounts, included credits, premium voice multipliers, taxes, and account-specific terms may change the effective rate.
 
 **Whisper lifecycle constraint:** OpenAI's current deprecation notice says `whisper-1` is scheduled for removal on **February 26, 2027**. Keep Whisper as the selected input during prototyping, but budget an integration and evaluation pass for `gpt-transcribe` or `gpt-live-transcribe` before that date. OpenAI currently lists `gpt-transcribe` at an estimated **$0.0045/minute**; validate that it meets the game's transcription and context needs before switching. The budget below prices the current Whisper selection and does not include one-time migration engineering.
 
@@ -366,11 +366,11 @@ Sources: [OpenAI Whisper pricing](https://developers.openai.com/api/docs/models/
 
 An active player-hour is one hour with the game running and voice output enabled. Rates count all pilot and controller transmissions synthesized for that player's session, not just the player's own spoken turns.
 
-| Scenario | Uploaded player audio | GPT-4o mini calls (input / output tokens) | Uncached ElevenLabs text | Whisper | GPT-4o mini | ElevenLabs at $0.05–$0.10/1K | Total variable usage cost/player-hour |
+| Scenario | Uploaded player audio | GPT-6 Luna calls (input / output tokens) | Uncached ElevenLabs text | Whisper | GPT-6 Luna | ElevenLabs at $0.05–$0.10/1K | Total variable usage cost/player-hour |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Light | 5 min | 50 calls (50K / 7.5K) | 4K chars | $0.030 | $0.012 | $0.20–$0.40 | **$0.24–$0.44** |
-| Typical | 10 min | 100 calls (150K / 20K) | 10K chars | $0.060 | $0.035 | $0.50–$1.00 | **$0.59–$1.10** |
-| Busy | 20 min | 200 calls (400K / 50K) | 25K chars | $0.120 | $0.090 | $1.25–$2.50 | **$1.46–$2.71** |
+| Light | 5 min | 50 calls (50K / 7.5K) | 4K chars | $0.030 | $0.009 | $0.20–$0.40 | **$0.24–$0.44** |
+| Typical | 10 min | 100 calls (150K / 20K) | 10K chars | $0.060 | $0.025 | $0.50–$1.00 | **$0.59–$1.09** |
+| Busy | 20 min | 200 calls (400K / 50K) | 25K chars | $0.120 | $0.065 | $1.25–$2.50 | **$1.44–$2.69** |
 
 GPT input/output totals in this table include the logical roles above. They assume roughly two model calls per full player/pilot exchange—player interpretation/context plus pilot act/writing—with compatible roles combined where practical, and no separate verifier call or cached-token discount. The light/typical/busy usage values are planning assumptions, not measured simulator telemetry. Whisper minutes mean total uploaded clip duration, including any silence the client does not trim. Separating every role into its own request, or adding a GPT-driven bot controller, will increase model usage and must be measured before raising the budget.
 
@@ -382,9 +382,9 @@ At the **typical** profile, before contingency or fixed subscription charges:
 |---:|---:|---:|
 | 30 hours (solo development) | **about $18/month** | **about $33/month** |
 | 100 hours (small test group) | **about $59/month** | **about $109/month** |
-| 1,000 hours (early public usage) | **about $595/month** | **about $1,095/month** |
+| 1,000 hours (early public usage) | **about $585/month** | **about $1,085/month** |
 
-Recommended planning envelope: use the typical profile and the **$0.10/1K higher TTS rate**, then add a **30% contingency** until playtest data is available. That gives about **$43 for 30 player-hours**, **$142 for 100 player-hours**, or **$1,423 for 1,000 player-hours**, plus any fixed ElevenLabs subscription/seat charge. A tighter envelope can be set after selecting the ElevenLabs model and measuring cache hit rate and characters per session.
+Recommended planning envelope: use the typical profile and the **$0.10/1K higher TTS rate**, then add a **30% contingency** until playtest data is available. That gives about **$42 for 30 player-hours**, **$141 for 100 player-hours**, or **$1,411 for 1,000 player-hours**, plus any fixed ElevenLabs subscription/seat charge. A tighter envelope can be set after selecting the ElevenLabs model and measuring cache hit rate and characters per session.
 
 ### Per-service controls and total budget formula
 
@@ -399,7 +399,7 @@ monthly total = monthly variable budget + any fixed provider plan/seat charges
 ```
 
 * **Whisper:** cap maximum clip duration and uploaded audio per player-hour; discard silence where practical; do not retranscribe retries without user action.
-* **GPT-4o mini:** limit context to the current aircraft, relevant clearance, and recent dialogue; use structured outputs; log input/output tokens per turn; alert on unusual call volume.
+* **GPT-6 Luna:** limit context to the current aircraft, relevant clearance, and recent dialogue; use structured outputs; log input/output tokens per turn; alert on unusual call volume.
 * **ElevenLabs:** assign one stable voice ID per aircraft and position; generate only the chosen voice; cache by text + voice + model/settings; cap speculative prefetch; log character cost and cache hits.
 * **Whole stack:** provide monthly spend alerts at 50%, 80%, and 100% of the chosen cap. At the cap, pause new cloud audio/model calls and continue with transcript/text mode. Do not let a provider retry loop spend past the cap.
 * **Budget review:** report actual cost per active player-hour, per scenario, per model, and per voice. Recalculate the published estimates whenever a provider changes price, model, or included-credit rules.
